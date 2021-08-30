@@ -9,7 +9,7 @@ class Checker {
     private:
         static bool JA(Program &p, bool restricted);
 
-        static bool MFA(Program &p, std::string sameasAlgo = "");
+        static bool MFA(Program &p, std::string sameasAlgo = "", bool ebdLayerOnly = false);
 
         static bool MSA(Program &p);
 
@@ -24,7 +24,8 @@ class Checker {
         static void createCriticalInstance(Program &newProgram,
                 Program &p,
                 EDBLayer *db,
-                EDBLayer &layer);
+                EDBLayer &layer,
+                bool edbLayerOnly = false);
 
         static void addBlockCheckTargets(Program &p, PredId_t ignorePred = -1);
 

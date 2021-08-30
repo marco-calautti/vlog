@@ -50,6 +50,9 @@ int Checker::check(Program &p, std::string alg, std::string sameasAlgo,
     if (alg == "MFA") {
         // Model Faithful Acyclic
         return MFA(p, sameasAlgo) ? 1 : 0;
+    } else if (alg == "EDBMFA") {
+        // Model Faithful Acyclic with only edb predicates in the critical instance
+        return MFA(p, sameasAlgo, true) ? 1 : 0;
     } else if (alg == "JA") {
         // Joint Acyclic
         return JA(p, false) ? 1 : 0;
@@ -129,7 +132,8 @@ static void addIDBCritical(Program &p, EDBLayer *db) {
 void Checker::createCriticalInstance(Program &newProgram,
         Program &p,
         EDBLayer *db,
-        EDBLayer &layer) {
+        EDBLayer &layer,
+        bool edbLayerOnly) {
 
     //Populate the critical instance with new facts
     for(auto p : db->getAllPredicateIDs()) {
@@ -153,10 +157,13 @@ void Checker::createCriticalInstance(Program &newProgram,
 
     // The critical instance should have initial values for ALL predicates,
     // not just the EDB ones ... --Ceriel
-    addIDBCritical(newProgram, &layer);
+    // Update: we can now choose if including all predicates or not.
+    if(!edbLayerOnly) {
+        addIDBCritical(newProgram, &layer);
+    }
 }
 
-bool Checker::MFA(Program &p, std::string sameasAlgo) {
+bool Checker::MFA(Program &p, std::string sameasAlgo, bool edbLayerOnly) {
     // Create  the critical instance (cdb)
     EDBLayer *db = p.getKB();
     EDBLayer layer(*db, false);
@@ -185,7 +192,7 @@ bool Checker::MFA(Program &p, std::string sameasAlgo) {
     }
 
     Program newProgram(&layer);
-    createCriticalInstance(newProgram, p, db, layer);
+    createCriticalInstance(newProgram, p, db, layer, edbLayerOnly);
 
     //Launch the skolem chase with the check for cyclic terms
     std::shared_ptr<SemiNaiver> sn = Reasoner::getSemiNaiver(layer,
